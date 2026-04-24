@@ -1,6 +1,6 @@
   // URL da API que devolve a lista de países (ex.: [{code:'BRA', name:'Brasil', flag:'https://...'}])
-  const API_URL = 'https://example.com/api/paises'; // <‑‑ substitua pela sua API real
-
+  const API_URL = 'https://development-internship-api.geopostenergy.com/WorldCup/GetAllTeams'; // <‑‑ substitua pela sua API real
+  let teams = [];
   // Função utilitária para escolher N elementos aleatoriamente de um array
   function getRandomElements(arr, n) {
     const copy = [...arr];
@@ -14,8 +14,24 @@
 
   // Simulação da Copa
   async function runSimulation() {
-    const response = await fetch(API_URL);
-    const allCountries = await response.json(); // espera [{code, name, flag}]
+    const response = await fetch(API_URL, {
+    method: 'GET',
+    headers: {
+        'git-user': 'ntwnz',
+    }
+})                             
+    
+    //recebendo resposta inicial da API
+    teams = await response.json(); // espera [{code, name, flag}]
+    console.log('times recebidos');
+    console.table(teams); // tabela bonitinha no console
+    
+    //pegando indices de cada país
+    let indices=Array.from({length: teams.length}, (_,i) => i);
+    const indices_embaralho = getRandomElements(indices,indices.leght)
+
+
+
     const groups = {};
 
     // Cria grupos A‑H (8 grupos, 4 países cada)
