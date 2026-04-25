@@ -113,15 +113,65 @@
 
   
     // Vencedor
-    const vencedorIndex = indicesAvancando[0];
-    const vencedorIndex1 = indicesAvancando[1];
-    const vencedorIndex2 = indicesAvancando[2];
-    const vencedorNome = getNome (vencedorIndex);
-    const vencedorToken = getToken (vencedorIndex);
+
+    const finalista1Index = indicesAvancando[0];
+    const finalista1Nome = getNome (finalista1Index);
+    const finalista1Token = getToken (finalista1Index);
+
+    const finalista2Index = indicesAvancando[1];
+    const finalista2Nome = getNome (finalista2Index);
+    const finalista2Token = getToken (finalista2Index);
+
+
+    // 9. Simula o placar da final (gols normais)
+    const golsA = Math.floor(Math.random() * 6);   // 0 a 3 gols
+    const golsB = Math.floor(Math.random() * 6);
+
+    let golsPenaltyA = 0;
+    let golsPenaltyB = 0;
+    let vencedorIndex;
+
+    // 10. Decide quem ganhou (ou vai para pênaltis)
+    if (golsA > golsB) {
+      vencedorIndex = finalista1Index;
+      } else if (golsB > golsA) {
+      vencedorIndex = finalista2Index;
+    } else {
+
+      golsPenaltyA = Math.floor(Math.random() * 5) + 3;  // entre 3 e 7
+      golsPenaltyB = Math.floor(Math.random() * 5) + 3;
+
+      vencedorIndex = (golsPenaltyA > golsPenaltyB) ? finalistaA : finalistaB;
+    }
+
+    const vencedorNome = getNome(vencedorIndex);
+    const vencedorToken = getToken(vencedorIndex);
+    
     
     alert(`🏆 CAMPEÃO DA COPA: ${vencedorNome}!\n\nToken: ${vencedorToken}`);
-    console.log('🔥 Token do campeão para o POST:', vencedorIndex,vencedorIndex1,vencedorIndex2,vencedorToken);
-}
+    console.log('🔥 Token do campeão para o POST:', vencedorIndex, vencedorToken);
+
+    const FINAL_URL = 'https://development-internship-api.geopostenergy.com/WorldCup/FinalResult';
+
+    fetch(FINAL_URL, {
+      method: 'POST',
+      headers: {
+          'git-user': 'ntwnz',
+          'Content-Type': 'application/json',
+        },
+      body:  JSON.stringify(
+        {
+        'equipeA': finalista1Token,
+        'equipeB': finalista2Token,
+        'golsEquipeA': golsA,
+        'golsEquipeB': golsB,
+        'golsPenaltyTimeA': golsPenaltyA,
+        'golsPenaltyTimeB': golsPenaltyB,
+      })
+
+    })
+
+  }
   // Inicia a simulação ao carregar a página
   runSimulation().catch(err => {
     console.error(err);
