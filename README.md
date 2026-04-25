@@ -19,4 +19,4 @@ Diferente da fase de grupos, o algoritmo de mata-mata ignora empates e realiza p
 
 Para rodar o projeto localmente, basta acessar o github pages
 <br>
-<a href='https://github.com/ntwnz/copamundi/deployments/github-pages'>link</a>
+<a href='https://ntwnz.github.io/copamundi/'>link</a>
