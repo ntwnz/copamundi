@@ -311,7 +311,7 @@
   
   //TESTE DO POST
   const FINAL_URL = 'https://development-internship-api.geopostenergy.com/WorldCup/FinalResult';
-  const body = {
+  const dados_POST = {
     equipeA: tokenA,
     equipeB: tokenB,
     golsEquipeA: golsA,
@@ -319,13 +319,19 @@
     golsPenaltyTimeA: golsPenaltyA,
     golsPenaltyTimeB: golsPenaltyB
   };
-
-  console.log('POST Final:', body);
+  
+  fetch(FINAL_URL, {//faz o POST
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'git-user': 'ntwnz',
+    },
+    body: JSON.stringify(dados_POST),
+  });
   }
 
 
-  // A simulação agora é iniciada pelo botão "Iniciar Simulação"
-
+//Inicia a simulação com o botão invés de automáticamente
 document.addEventListener('DOMContentLoaded', () => {
   const startBtn = document.getElementById('startBtn');
   const resultsSection = document.getElementById('results');
@@ -339,4 +345,3 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
-  
