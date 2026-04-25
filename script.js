@@ -1,7 +1,8 @@
-  // URL da API que devolve a lista de países (ex.: [{code:'BRA', name:'Brasil', flag:'https://...'}])
   const API_URL = 'https://development-internship-api.geopostenergy.com/WorldCup/GetAllTeams'; // <‑‑ substitua pela sua API real
+
   let teams = [];
-  // Função utilitária para escolher N elementos aleatoriamente de um array
+  
+  // Função para escolher elementos do array e formar os grupos aleatoriamente
   function getRandomElements(arr, n) {
     const copy = [...arr];
     const result = [];
@@ -12,7 +13,7 @@
     return result;
   }
 
-  //Função para pegar nome relacionado com o indice informado
+  //Função para pegar nome relacionado com o indice
   function getNome(indice) {
     if (indice < 0 || indice >= teams.length) {
       console.error(`Índice invalido: ${indice}`);
@@ -21,7 +22,7 @@
     return teams[indice]?.nome || 'Nome não encontrado';
   }
 
-  //Função para pegar o token relacionado com o índice (para usar no POST)
+  //Função para pegar o token relacionado com o índice
   function getToken(indice) {
     if (indice === undefined || indice === null || indice < 0 || indice >= teams.length) {
       console.error(`Índice invalido: ${indice}`);
@@ -30,17 +31,24 @@
     return teams[indice]?.token || null;
   }
 
+
+  //Toda a Simulação
+
   async function runSimulation() {
+
+    //Pegando times da API
     const response = await fetch(API_URL, {
     method: 'GET',
     headers: { 'git-user': 'ntwnz' }
   });
   
+  //Recebe os times no vetor teams e avisa no console
   teams = await response.json();
   console.log('times recebidos');
   console.table(teams);
   console.log(`✅ Total de seleções carregadas: ${teams.length}`);
 
+  //cria um vetor de indices para melhor relacionar os times com nome e tokens
   let indices = Array.from({length: teams.length}, (_, i) => i)
   const indices_embaralho = getRandomElements(indices, indices.length);
 
@@ -54,7 +62,7 @@
   app.innerHTML = '<h2>Grupos da Copa</h2>';
 
  
- // ====FASE DE GRUPOS====
+ // Simulação de fase de grupos
   let classificados = [];
 
   for (const letter of letras_grupos) {
@@ -78,8 +86,8 @@
     console.log(`Grupo ${letter} - índices:`, timesDoGrupo);
 
     const divGrupo = document.createElement('div');
-    divGrupo.className = 'grupo';
-    let htmlGrupo = `<strong>Grupo ${letter}</strong><br><br>`;
+    divGrupo.className = 'grupo card';
+    let htmlGrupo = `<strong>Grupo ${letter}</strong><br>Times: ${timesDoGrupo.map(idx => getNome(idx)).join(', ')}<br><br>`;
 
     // 3 rodadas
     for (let rodada = 1; rodada <= 3; rodada++) {
@@ -144,7 +152,9 @@
     classificados.push(tabela[0].indice, tabela[1].indice);
   }
 
-  // ====================== FASES ELIMINATÓRIAS ======================
+
+  // ELIMINATÓRIAS
+
     function jogarRodada(teamIndices) {
     const vencedores = [];
 
@@ -158,34 +168,64 @@
         break;
       }
 
-      vencedores.push(Math.random() < 0.5 ? idx1 : idx2);
+      let nome_e1 = getNome(idx1);
+      let nome_e2 = getNome(idx2);
+
+      let gols_e1 = Math.floor(Math.random() * 4);
+      let gols_e2 = Math.floor(Math.random() * 4);
+      let res_jogo = `${nome_e1} ${gols_e1} X ${gols_e2} ${nome_e2}`;
+      let vencedor;
+
+      if (gols_e1 > gols_e2) { //Se e1>e2, ele vence
+        vencedor=idx1;
+      } else if (gols_e2 > gols_e1){ //Se e2>e1, ele vence
+        vencedor=idx2;
+      } else{ //Se e1=e2, faz penaltis recebe em variáveis novas
+        let p1,p2;
+        do {
+        p1 = Math.floor(Math.random() * 5) + 3;
+        p2 = Math.floor(Math.random() * 5) + 3;
+        if ((p1+p2)>5 && (p1-p2)>1) {//corrigidas as diferenças altas acima de 5 penaltis
+          p1=p2+1;
+        } else if ((p1+p2)>5 && (p2-p1)>1){
+          p2=p1+1
+        }
+        } while (p1===p2);
+
+        vencedor = p1 > p2 ? idx1 : idx2;
+        res_jogo += ` <span style="color: #d97706;">(Pên: ${p1}x${p2})</span>`;
+      }
+      vencedores.push({ vencedor: vencedor, info: res_jogo});
     }
     return vencedores;
   }
   
-  let indicesAvancando = [...classificados]; 
 
+  let indicesAvancando = [...classificados]; 
   const fases = ['Oitavas de Final', 'Quartas de Final', 'Semifinal'];
 
   for (const fase of fases) {
-    console.log(`${fase} - Times antes:`, indicesAvancando.length, indicesAvancando);
-
-    indicesAvancando = jogarRodada(indicesAvancando);
-
-    console.log(`${fase} - Times depois:`, indicesAvancando.length, indicesAvancando);
-
+    const resultadosDaRodada = jogarRodada(indicesAvancando);
+  
     const faseDiv = document.createElement('div');
-    faseDiv.className = 'grupo';
-    faseDiv.innerHTML = `<strong>${fase}:</strong> ` +
-      indicesAvancando.map(idx => 
-        `<span style="margin-right:12px;">${getNome(idx)}</span>`
-      ).join('');
+    faseDiv.className = 'grupo card eliminatoria';
+    faseDiv.innerHTML = `<strong>${fase}:</strong><br>`;
+  
+    // Exibe cada jogo daquela fase
+    resultadosDaRodada.forEach(res => {
+    faseDiv.innerHTML += `<div>${res.info}</div>`;
+    });
+
     app.appendChild(faseDiv);
 
+    indicesAvancando = resultadosDaRodada.map(res=> res.vencedor)
     await new Promise(r => setTimeout(r, 1500));
   }
 
-  // ====================== FINAL ======================
+  
+  
+  // APENAS A FINAL
+
   const finalistaA = indicesAvancando[0];
   const finalistaB = indicesAvancando[1];
 
@@ -201,7 +241,7 @@
   const tokenB = getToken(finalistaB);
 
   // Simula placar da final
-  if (Math.random() < 0.5) {
+  if (Math.random() < 0.5) {//dei mais chance de penalti para ser mais legal
     var golsA = Math.random () < 0.5 ? 0 : 3;
     var golsB = golsA;
   } else{
@@ -218,22 +258,28 @@
   } else if (golsB > golsA) {
     vencedorIndex = finalistaB;
   } else {
-    // Empate → Pênaltis
+    // se for igual vai pro penalti
     tevePenalti = true;
     golsPenaltyA = Math.floor(Math.random() * 5) + 3;   // 3 a 7
     golsPenaltyB = Math.floor(Math.random() * 5) + 3;
+    if ((golsPenaltyA+golsPenaltyB)>5 && (golsPenaltyA-golsPenaltyB)>1) {//corrigidas as diferenças altas acima de 5 penaltis
+          golsPenaltyA=golsPenaltyB+1;
+        } else if ((golsPenaltyA+golsPenaltyB)>5 && (golsPenaltyB-golsPenaltyA)>1){
+          golsPenaltyB=golsPenaltyA+1
+        }
     // Enquanto for igual, sorteia de novo
-  while (golsPenaltyA === golsPenaltyB) {
+    while (golsPenaltyA === golsPenaltyB) {
       golsPenaltyA = Math.floor(Math.random() * 5) + 3;
       golsPenaltyB = Math.floor(Math.random() * 5) + 3;
-  }
+    }
     vencedorIndex = golsPenaltyA > golsPenaltyB ? finalistaA : finalistaB;
   }
 
   const vencedorNome = getNome(vencedorIndex);
   const vencedorToken = getToken(vencedorIndex);
 
-  // ====================== EXIBE NO HTML ======================
+  
+  // FINAL NO HTML
   const finalDiv = document.createElement('div');
   finalDiv.className = 'grupo';
   finalDiv.style.border = '3px solid gold';
@@ -246,7 +292,7 @@
   let htmlFinal = `<strong>🏆 FINAL:</strong><br><br>`;
   htmlFinal += `${nomeA} <strong>${golsA}</strong> × <strong>${golsB}</strong> ${nomeB}<br>`;
 
-  // ←←← Aqui mostra os pênaltis quando houver ←←←
+  // PENALTI NO HTML
   if (tevePenalti) {
     htmlFinal += `<br><strong style="color: #d97706;">PÊNALTIS:</strong> ${nomeA} ${golsPenaltyA} × ${golsPenaltyB} ${nomeB}<br>`;
   }
@@ -256,14 +302,14 @@
   finalDiv.innerHTML = htmlFinal;
   app.appendChild(finalDiv);
 
-  // Alert também
+  // ALERT DE PENALTI
   const penaltyText = tevePenalti 
     ? `\n\nPÊNALTIS: ${nomeA} ${golsPenaltyA} × ${golsPenaltyB} ${nomeB}` 
     : '';
 
-  alert(`🏆 FINAL\n\n${nomeA} ${golsA} × ${golsB} ${nomeB}${penaltyText}\n\nCAMPEÃO: ${vencedorNome}!`);
-
-  // Envia POST
+  
+  
+  //TESTE DO POST
   const FINAL_URL = 'https://development-internship-api.geopostenergy.com/WorldCup/FinalResult';
   const body = {
     equipeA: tokenA,
@@ -278,8 +324,19 @@
   }
 
 
-  // Inicia a simulação ao carregar a página
-  runSimulation().catch(err => {
-    console.error(err);
-    alert('Erro ao obter dados dos países. Verifique a API.');
-  })
+  // A simulação agora é iniciada pelo botão "Iniciar Simulação"
+
+document.addEventListener('DOMContentLoaded', () => {
+  const startBtn = document.getElementById('startBtn');
+  const resultsSection = document.getElementById('results');
+  startBtn.addEventListener('click', () => {
+    resultsSection.style.display = 'block';
+    startBtn.disabled = true;
+    startBtn.style.opacity = '0.5';
+    runSimulation().catch(err => {
+      console.error(err);
+      alert('Erro ao iniciar simulação, vrf API');
+    });
+  });
+});
+  
