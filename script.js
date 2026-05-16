@@ -25,7 +25,7 @@
   //Função para pegar o token relacionado com o índice
   function getToken(indice) {
     if (indice === undefined || indice === null || indice < 0 || indice >= teams.length) {
-      console.error(`Índice invalido: ${indice}`);
+      .error(`Índice invalido: ${indice}`);
       return null;
     }
     return teams[indice]?.token || null;
@@ -42,11 +42,10 @@
     headers: { 'git-user': 'ntwnz' }
   });
   
-  //Recebe os times no vetor teams e avisa no console
+  //Recebe os times no vetor teams e avisa no 
   teams = await response.json();
   console.log('times recebidos');
-  console.table(teams);
-  console.log(`✅ Total de seleções carregadas: ${teams.length}`);
+  console.log(`total de seleções carregadas: ${teams.length}`);
 
   //cria um vetor de indices para melhor relacionar os times com nome e tokens
   let indices = Array.from({length: teams.length}, (_, i) => i)
@@ -83,7 +82,7 @@
       saldo: 0
     }));
 
-    console.log(`Grupo ${letter} - índices:`, timesDoGrupo);
+    
 
     const divGrupo = document.createElement('div');
     divGrupo.className = 'grupo card';
